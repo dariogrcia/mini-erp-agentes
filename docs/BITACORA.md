@@ -134,3 +134,12 @@ hicieron falta y qué fallos se encontraron. Los informes completos de Testing e
   `usePathname()` rompía el build con Cache Components. Desviación justificada y aceptada.
 - F1 (un aviso de "límite excedido" engañoso cuando falla una línea): lo corrige el Orquestador.
   F2 (borradores no idempotentes): **excepción a D12** documentada en el plan.
+
+## 2026-11-23 · Tarea 8: panel (Develop: Claude, worktree)
+- Se hace en paralelo con la tarea 7 (Codex). `kpis.ts` es puro, con "hoy" inyectado,
+  zona Europe/Madrid y cambios de mes en CET/CEST cubiertos por tests (355 en total).
+- **Testing, ronda 1: APROBADA.** Recalculó los KPIs por REST de forma independiente y
+  coinciden al céntimo. Hay 3 menores que se aceptan como limitaciones conocidas (ver el
+  registro del plan).
+- Como el checkout principal estaba ocupado por la rama de Codex, el merge a `main` se hace
+  desde el propio worktree.

@@ -278,7 +278,7 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
 - **Verificación:** `npm run verify` en verde.
 
 ### Tarea 8 — Panel (dashboard)
-- **Estado:** pendiente
+- **Estado:** hecha
 - **Develop:** Claude (`develop`) · **Modo:** síncrono · **Crítica:** no
 - **Archivos:** `src/app/(app)/dashboard/page.tsx`, `src/lib/domain/kpis.ts` y `kpis.test.ts`.
 - **Contrato:** KPIs (facturado este mes = emitidas y pagadas por `issue_date`;
