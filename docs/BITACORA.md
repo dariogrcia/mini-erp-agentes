@@ -125,3 +125,12 @@ hicieron falta y qué fallos se encontraron. Los informes completos de Testing e
 - 1 menor (F1): ante un 23505 de la PK (id ajeno manipulado) se mostraba "SKU duplicado".
   El Orquestador lo corrige distinguiendo la constraint `products_owner_id_sku_key`, cuyo
   nombre se confirmó en vivo.
+
+## 2026-11-23 · Tarea 6: facturas, listado y editor (Develop: Claude, worktree)
+- El editor tiene vista previa en vivo del IVA. **Testing, ronda 1: APROBADA.** La vista
+  previa coincide con la BD en todos los redondeos .5, en cantidades grandes y en el máximo
+  exacto. Rechaza arrays desiguales, 201 líneas, NaN e ids de otro usuario.
+- Develop tocó `(app)/layout.tsx` (AppNav en `<Suspense>`): era la primera ruta dinámica y
+  `usePathname()` rompía el build con Cache Components. Desviación justificada y aceptada.
+- F1 (un aviso de "límite excedido" engañoso cuando falla una línea): lo corrige el Orquestador.
+  F2 (borradores no idempotentes): **excepción a D12** documentada en el plan.

@@ -57,6 +57,9 @@ Responsive (móvil y escritorio), con login y datos aislados por usuario.
   revisión adversarial de la tarea 4 (duplicados al reintentar tras un fallo de red).
   *Limitación aceptada:* el reintento solo comprueba que la fila es del usuario, no su contenido
   (riesgo bajo, documentado en docs/reviews/tarea-4-ronda-2.md, F1).
+  *Excepción:* los **borradores de factura** no son idempotentes al crearse (la RPC crea uno por
+  llamada). Se acepta porque un borrador duplicado no tiene número ni mueve stock y se puede
+  borrar. Mitigación: bloqueo de doble envío en el editor (tarea 6).
 
 ## Esquema de datos (contrato de la tarea 1)
 ```
@@ -237,7 +240,7 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
 - **Verificación:** `npm run verify` en verde.
 
 ### Tarea 6 — Facturas: listado y editor de borrador
-- **Estado:** pendiente
+- **Estado:** hecha
 - **Develop:** Claude (`develop`) · **Modo:** síncrono · **Crítica:** sí (importes)
 - **Contexto:** D3, D4, D5 y D9. DOM-1 y DOM-2.
 - **Archivos:** `src/lib/actions/invoices.ts` (`saveDraft`), `src/app/(app)/facturas/page.tsx`,
