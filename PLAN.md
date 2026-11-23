@@ -44,6 +44,19 @@ Responsive (móvil y escritorio), con login y datos aislados por usuario.
   `getCurrentUser()` de `src/lib/auth.ts` (Data Access Layer, redirige a `/login`). Los
   datos de usuario no se cachean (`use cache` no se usa sobre datos de Supabase). Patrón en
   COMO-PROGRAMAR §2, Páginas con datos.
+- **D11 — Concurrencia optimista** en `customers` y `products`: columna `updated_at timestamptz
+  not null default now()`, que mantiene un trigger `before update` (migración `0003`). El
+  formulario de edición envía el `updated_at` leído, y el UPDATE filtra
+  `.eq("updated_at", leido)`. Si afecta a 0 filas pero el registro existe, se devuelve el
+  conflicto "Este registro ha cambiado desde que lo abriste. Recarga para ver la versión
+  actual." y se conservan los valores escritos. Motivo: revisión adversarial de la tarea 4
+  (cambios perdidos entre pestañas).
+- **D12 — Altas idempotentes**: el formulario de alta genera el `id` (UUID v4) al montarse y
+  lo envía como campo oculto. La acción hace insert con ese id. Si recibe `23505` sobre la
+  clave primaria **y** la fila con ese id ya es del usuario, lo trata como éxito. Motivo:
+  revisión adversarial de la tarea 4 (duplicados al reintentar tras un fallo de red).
+  *Limitación aceptada:* el reintento solo comprueba que la fila es del usuario, no su contenido
+  (riesgo bajo, documentado en docs/reviews/tarea-4-ronda-2.md, F1).
 
 ## Esquema de datos (contrato de la tarea 1)
 ```
@@ -193,7 +206,7 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
   `npm run dev`: `/dashboard` sin sesión redirige a `/login`.
 
 ### Tarea 4 — Clientes (CRM)
-- **Estado:** pendiente
+- **Estado:** hecha
 - **Develop:** Claude (`develop`) · **Modo:** síncrono · **Crítica:** sí (datos personales)
 - **Contexto:** D9, SEG-2, SEG-6, UX-1 a UX-6 y DOM-6.
 - **Archivos:** `src/lib/actions/customers.ts`, `src/app/(app)/clientes/page.tsx`,
@@ -209,7 +222,12 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
 ### Tarea 5 — Productos e inventario
 - **Estado:** pendiente
 - **Develop:** Codex · **Modo:** síncrono · **Crítica:** no
-- **Contexto:** mismo patrón que la tarea 4 (cópialo de `src/app/(app)/clientes/`). D4 y DOM-6.
+- **Contexto:** mismo patrón que la tarea 4 (cópialo de `src/app/(app)/clientes/`): reutiliza
+  `src/components/ui.tsx`, `PageHeader.tsx`, `ConfirmButton.tsx`, `src/lib/domain/search.ts`
+  (`normalizeSearch`, `ilikeAnyFilter`) y `src/lib/domain/uuid.ts`. Aplica **D11 y D12** igual que
+  `src/lib/actions/customers.ts`. `updated_at` se compara como **string tal cual llega de
+  PostgREST**: nunca se convierte a `Date`, porque los microsegundos se pierden y darían un falso
+  conflicto. D4 y DOM-6.
 - **Archivos:** `src/lib/actions/products.ts`, `src/app/(app)/productos/page.tsx` y
   `src/app/(app)/productos/ProductForm.tsx`.
 - **Contrato:** listado con búsqueda por nombre o SKU, filtro `?stock=bajo` e insignia

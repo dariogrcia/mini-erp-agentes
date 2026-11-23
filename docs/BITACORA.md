@@ -98,3 +98,21 @@ hicieron falta y qué fallos se encontraron. Los informes completos de Testing e
   para que funcione en clones limpios, donde `PageProps`/`LayoutProps` son tipos generados.
 - **Lección para COMO-PROGRAMAR:** en validaciones de seguridad, lista blanca sobre el valor
   ya normalizado; nunca lista negra sobre la entrada.
+
+## 2026-11-23 · Tarea 4: clientes / CRM (Develop: Claude)
+- Develop fija el patrón reutilizable: `ui.tsx`, `PageHeader`, `ConfirmButton` (confirmación en
+  línea, sin `window.confirm`) y `search.ts`, que blinda `.or()` de PostgREST contra
+  inyección de filtros.
+- **Testing, ronda 1: APROBADA**, con 2 menores: `*` funciona como comodín en PostgREST y
+  desborde a 375 px. Son triviales y los corrige el Orquestador directamente.
+- **Revisión adversarial** (`/codex:adversarial-review`, por datos personales):
+  `needs-attention`, con 2 hallazgos de **diseño** que no vieron ni Testing ni Develop:
+  cambios perdidos entre dos pestañas y altas duplicadas al reintentar tras un fallo de red.
+  El Orquestador los convierte en las decisiones **D11** (concurrencia optimista con
+  `updated_at` y trigger, migración 0003) y **D12** (altas idempotentes con UUID del
+  formulario).
+- **Testing, ronda 2: APROBADA.** Probado en vivo: conflicto real entre dos ediciones, alta
+  repetida que deja una sola fila y trigger que impide falsear la versión. Queda un menor
+  (F1), aceptado como limitación conocida y documentado en D12.
+- **Lección:** Testing verifica que se cumplen las reglas; la revisión adversarial pone en duda
+  las reglas mismas. Se complementan.
