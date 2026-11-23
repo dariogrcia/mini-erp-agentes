@@ -116,3 +116,12 @@ hicieron falta y qué fallos se encontraron. Los informes completos de Testing e
   (F1), aceptado como limitación conocida y documentado en D12.
 - **Lección:** Testing verifica que se cumplen las reglas; la revisión adversarial pone en duda
   las reglas mismas. Se complementan.
+
+## 2026-11-23 · Tarea 5: productos e inventario (Develop: Codex)
+- En paralelo con la tarea 6 (Claude, worktree). Codex copia el patrón de la tarea 4, con
+  D11 y D12 escritos en el plan. **Testing, ronda 1: APROBADA**, sin repetir ninguno de los
+  fallos que ya se vieron en clientes (comodín `*`, desbordes, falso conflicto por `Date`). Es
+  la prueba de que dejar las lecciones por escrito funciona.
+- 1 menor (F1): ante un 23505 de la PK (id ajeno manipulado) se mostraba "SKU duplicado".
+  El Orquestador lo corrige distinguiendo la constraint `products_owner_id_sku_key`, cuyo
+  nombre se confirmó en vivo.
