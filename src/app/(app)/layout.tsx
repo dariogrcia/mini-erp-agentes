@@ -10,13 +10,17 @@ import { getCurrentUser } from "@/lib/auth";
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="flex min-h-dvh flex-1 flex-col">
-      <AppNav
-        user={
-          <Suspense fallback={null}>
-            <UserEmail />
-          </Suspense>
-        }
-      />
+      {/* AppNav reads usePathname(): on routes with a dynamic param (/facturas/[id]) the
+          pathname is unknown at prerender, so it must sit inside Suspense (D10). */}
+      <Suspense fallback={<NavFallback />}>
+        <AppNav
+          user={
+            <Suspense fallback={null}>
+              <UserEmail />
+            </Suspense>
+          }
+        />
+      </Suspense>
       <main className="flex-1 pb-24 md:pb-0 md:pl-60">
         <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           <Suspense fallback={<ContentSkeleton />}>
@@ -36,6 +40,11 @@ async function RequireUser({ children }: { children: ReactNode }) {
 async function UserEmail() {
   const user = await getCurrentUser();
   return user.email;
+}
+
+/** Reserves the mobile top bar height so the content does not jump when the nav streams in. */
+function NavFallback() {
+  return <div aria-hidden="true" className="h-14 border-b border-line bg-surface md:hidden print:hidden" />;
 }
 
 function ContentSkeleton() {
