@@ -67,3 +67,26 @@ hicieron falta y qué fallos se encontraron. Los informes completos de Testing e
   los errores por `code` de Postgres (tarea 3), Zod hace trim de la descripción (tarea 2)
   y D6 aclara "mínimo 4 dígitos".
 - Cierre: commit, merge a `main` y tarea 1 marcada como **hecha**.
+
+## 2026-11-23 · Tareas 2 y 3 en paralelo
+- Por primera vez hay dos Develop a la vez. La tarea 2 la hace Codex en la rama
+  `tarea-2-dominio` y la tarea 3 la hace Claude en un git worktree aislado
+  (`.claude/worktrees/…`). El worktree dentro del repo rompía el lint de la tarea 2, así que
+  el Orquestador lo excluye en `eslint.config.mjs` y `.gitignore`.
+- **Tarea 3, Testing ronda 1: RECHAZADA.** F1 (SEG-4, mayor): **redirección abierta demostrada
+  en vivo**. `next=/\t/evil.com` pasaba el filtro de `//` y `/\`, y el navegador quita el
+  tabulador y acaba en `evil.com`. Hay dos menores de UX/errores (N1 y N2). Las 5 desviaciones que
+  declaró Develop se evalúan una a una: se aceptan `connection()`, el 401 JSON en `/api` y los
+  archivos extra, y queda pendiente cambiar `typecheck` para que haga `next typegen`. Se
+  devuelve a Develop (SendMessage, mismo contexto).
+- **Tarea 2, Testing ronda 1: APROBADA**, con 6 fallos menores. Testing comparó el IVA de TS
+  con un half-up exacto en BigInt (~400k casos, sin discrepancias) e hizo *mutation
+  testing* a mano: de 22 mutantes mueren 18. El Orquestador decide corregir los menores; en
+  F5 (inyección de fórmulas en el CSV que va a la gestoría) decide prefijar `'`. Codex
+  (`--resume`) los corrige.
+- **Tarea 2, Testing ronda 2: APROBADA**, sin fallos. 262 tests. Los 18 mutantes dirigidos a
+  los cambios mueren. Cerrada y mergeada.
+- **Tarea 3, Testing ronda 2: RECHAZADA.** La corrección de la ronda 1 filtraba antes de
+  normalizar, y `/.//evil.com` acababa como `//evil.com` después de `new URL()`. Se demostró
+  en vivo con un login real. El Orquestador cambia el enfoque de lista negra a **lista
+  blanca** y añade la directriz **SEG-7** (propuesta por Testing). Pasa a la ronda 3.
