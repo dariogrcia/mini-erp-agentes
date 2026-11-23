@@ -220,7 +220,7 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
 - **Verificación:** `npm run verify` en verde.
 
 ### Tarea 5 — Productos e inventario
-- **Estado:** pendiente
+- **Estado:** hecha
 - **Develop:** Codex · **Modo:** síncrono · **Crítica:** no
 - **Contexto:** mismo patrón que la tarea 4 (cópialo de `src/app/(app)/clientes/`): reutiliza
   `src/components/ui.tsx`, `PageHeader.tsx`, `ConfirmButton.tsx`, `src/lib/domain/search.ts`
