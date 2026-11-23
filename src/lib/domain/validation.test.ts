@@ -53,6 +53,15 @@ describe("customers and UUIDs", () => {
     { name: "Ana", tax_id: "12345678A" }, { name: "Ana", phone: 123 }, { name: "Ana", address: null }])("rejects invalid customer %j", (value) => {
     expect(customerSchema.safeParse(value).success).toBe(false);
   });
+  it("caps the length of the optional contact fields", () => {
+    const email = `${"a".repeat(242)}@example.com`;
+    expect(email).toHaveLength(254);
+    expect(customerSchema.safeParse({ name: "Ana", email, phone: "6".repeat(30), address: "x".repeat(300) }).success)
+      .toBe(true);
+    for (const extra of [{ email: `a${email}` }, { phone: "6".repeat(31) }, { address: "x".repeat(301) }]) {
+      expect(customerSchema.safeParse({ name: "Ana", ...extra }).success).toBe(false);
+    }
+  });
   it("accepts a 120-character name", () => {
     expect(customerSchema.safeParse({ name: "x".repeat(120) }).success).toBe(true);
   });

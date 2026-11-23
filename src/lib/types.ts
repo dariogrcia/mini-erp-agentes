@@ -30,6 +30,8 @@ export type CustomerRow = {
   phone: string | null;
   address: string | null;
   created_at: DbTimestamp;
+  /** Row version for optimistic concurrency (D11), bumped by a trigger. */
+  updated_at: DbTimestamp;
 };
 
 export type ProductRow = {
@@ -42,6 +44,8 @@ export type ProductRow = {
   stock: number;
   low_stock_threshold: number;
   created_at: DbTimestamp;
+  /** Row version for optimistic concurrency (D11), bumped by a trigger. */
+  updated_at: DbTimestamp;
 };
 
 export type InvoiceRow = {

@@ -40,9 +40,9 @@ function optionalText(schema: z.ZodType<string> = z.string()) {
 export const customerSchema = z.object({
   name: z.string().trim().min(1, "El nombre es obligatorio").max(120, "Máximo 120 caracteres"),
   tax_id: optionalText(z.string().toUpperCase().refine(isValidSpanishTaxId, "NIF, NIE o CIF inválido")),
-  email: optionalText(z.string().email("Correo electrónico inválido")),
-  phone: optionalText(),
-  address: optionalText(),
+  email: optionalText(z.string().max(254, "Máximo 254 caracteres").email("Correo electrónico inválido")),
+  phone: optionalText(z.string().max(30, "Máximo 30 caracteres")),
+  address: optionalText(z.string().max(300, "Máximo 300 caracteres")),
 });
 
 // Restrict coercion to actual numbers and nonempty decimal strings, never null/booleans.
