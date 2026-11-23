@@ -131,7 +131,7 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
   el aislamiento con dos usuarios.
 
 ### Tarea 2 — Lógica de dominio pura
-- **Estado:** pendiente
+- **Estado:** hecha
 - **Develop:** Codex · **Modo:** síncrono · **Crítica:** sí (importes)
 - **Contexto:** D4 y D5. Cálculos idénticos a los de la BD (DOM-2), para la vista previa
   en vivo del editor de facturas y para validar.
@@ -158,7 +158,7 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
     due_date opcional ≥ issue_date, notes opcional y `lines` con min 1 de
     `{product_id?: uuid, description (trim, 1..200), quantity int > 0, unit_price_cents int ≥ 0, vat_rate}`),
     `uuidSchema` e `isValidSpanishTaxId(s)` (NIF, NIE y CIF con dígito o letra de control).
-  - `csv.ts`: `invoicesToCsv(rows)`. Separador `;`, BOM UTF-8, importes con coma decimal,
+  - `csv.ts`: `invoicesToCsv(rows)`. Separador `;`, BOM UTF-8, celdas de texto que empiezan por `= + - @ \t \r` prefijadas con `'` (anti-inyección de fórmulas), importes con coma decimal,
     escapa comillas, `;` y saltos de línea. Columnas: Número;Fecha;Cliente;NIF;Base;IVA;Total;Estado.
 - **No hacer:** sin dependencias nuevas. Sin acceso a red ni a Supabase en estos archivos.
 - **Verificación:** `npm run verify` en verde, con tests de casos límite (TST-2): el .5
@@ -278,3 +278,4 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
 ## Registro
 <!-- una línea por tarea cerrada: fecha, tarea, Develop, rondas de Testing, notas -->
 - 2026-11-23 · T1 · Codex · 2 rondas y revisión adversarial · 5 fallos corregidos en `0002_hardening.sql` (aplicadas 0001 y 0002).
+- 2026-11-23 · T2 · Codex · 2 rondas · 262 tests; 6 menores corregidos (CIF N/R, NIF K/L/M, fechas 1900–2999, `-0`, CSV anti-fórmulas `'`).

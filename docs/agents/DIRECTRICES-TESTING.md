@@ -31,6 +31,9 @@ devuelve los fallos citando el ID (p. ej. `SEG-2`).
   stack traces.
 - **SEG-6** *(mayor)* Los IDs que llegan en `params` o formularios se validan como UUID
   antes de usarlos.
+- **SEG-7** *(bloqueante)* Nada de redirecciones abiertas. Todo destino de redirección que
+  venga del usuario (p. ej. `?next=`) se valida con una **lista blanca** de rutas internas y
+  **después** de normalizarlo. Si algo es dudoso, se va a la ruta por defecto.
 
 ## DOM: lógica de negocio
 - **DOM-1** *(bloqueante)* Los importes se calculan en céntimos enteros. No hay
@@ -85,4 +88,5 @@ devuelve los fallos citando el ID (p. ej. `SEG-2`).
 ## Historial de cambios de directrices
 <!-- Fecha · ID · cambio · motivo. Solo Testing modifica este archivo. -->
 - 2026-11-23 · todas · versión inicial.
+- 2026-11-23 · SEG-7 · nueva · propuesta de Testing tras dos rondas con redirección abierta en la tarea 3 (SEG-4 no la cubría).
 - 2026-11-23 · DOM-7 · nueva · la revisión adversarial de la tarea 1 encontró NaN aceptado y `lpad` truncando.
