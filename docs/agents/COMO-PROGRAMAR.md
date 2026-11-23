@@ -121,3 +121,8 @@ export async function createCustomer(_prev: ActionState, formData: FormData): Pr
 
 ## 5. Lecciones aprendidas
 <!-- El Orquestador añade aquí reglas nuevas cuando un fallo se repite (ver CLAUDE.md). -->
+- **Validar después de normalizar y con lista blanca** (tarea 3, 3 rondas). Una lista negra
+  sobre la entrada sin normalizar (`//`, `/\`) se salta con `\t` o `/.//`. Para cualquier
+  valor de seguridad (redirecciones, rutas, nombres de archivo): primero normaliza y después
+  comprueba contra lo permitido.
+- **Rechazar NaN/Infinity y no truncar** (tarea 1, revisión adversarial): ver DOM-7.

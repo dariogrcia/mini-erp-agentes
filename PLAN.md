@@ -166,7 +166,7 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
   CSV con comillas y `;`, y las transiciones válidas e inválidas.
 
 ### Tarea 3 — Auth, clientes de Supabase y estructura de la app
-- **Estado:** pendiente
+- **Estado:** hecha
 - **Develop:** Claude (`develop`) · **Modo:** síncrono · **Crítica:** sí
 - **Contexto:** D1, D7, D8, D9 y D10. SEG-4. Next 16 usa `proxy.ts`.
 - **Archivos:** crear `src/lib/supabase/server.ts`, `src/lib/supabase/client.ts`,
@@ -178,7 +178,9 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
 - **Contrato:**
   - `proxy.ts` refresca la sesión (patrón `@supabase/ssr`). Si no hay sesión y la ruta no
     es `/login`, redirige a `/login?next=…`. Si hay sesión y la ruta es `/login`, redirige a
-    `/dashboard`. Excluye los estáticos.
+    `/dashboard`. Excluye los estáticos. En `/api/*` sin sesión responde 401 JSON (no redirige).
+    El destino `next` se valida con `safeNextPath` (`src/lib/safe-redirect.ts`, lista blanca, SEG-7).
+    **Una sección privada nueva debe añadirse a `ALLOWED_PATH`.**
   - El login (email y contraseña) muestra un error en español si las credenciales no son
     correctas. El logout es un botón en la navegación.
   - La navegación es una barra lateral en escritorio y una barra inferior en móvil, con

@@ -90,3 +90,11 @@ hicieron falta y qué fallos se encontraron. Los informes completos de Testing e
   normalizar, y `/.//evil.com` acababa como `//evil.com` después de `new URL()`. Se demostró
   en vivo con un login real. El Orquestador cambia el enfoque de lista negra a **lista
   blanca** y añade la directriz **SEG-7** (propuesta por Testing). Pasa a la ronda 3.
+- **Tarea 3, Testing ronda 3: APROBADA.** La lista blanca se aplica después de normalizar.
+  Fuzz de 300.000 entradas sin ninguna salida del origen. Probado en vivo con login real.
+  Se integra con un merge de 3 vías: la rama del worktree salía de antes de la tarea 2, y un
+  merge real la conserva.
+- Se aplica la propuesta N3 de Develop/Testing: `typecheck` = `next typegen && tsc --noEmit`,
+  para que funcione en clones limpios, donde `PageProps`/`LayoutProps` son tipos generados.
+- **Lección para COMO-PROGRAMAR:** en validaciones de seguridad, lista blanca sobre el valor
+  ya normalizado; nunca lista negra sobre la entrada.
