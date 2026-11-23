@@ -49,6 +49,10 @@ devuelve los fallos citando el ID (p. ej. `SEG-2`).
 - **DOM-6** *(mayor)* Cantidades > 0, precios ≥ 0, stock ≥ 0 y NIF/CIF con formato
   válido cuando se informa.
 
+- **DOM-7** *(mayor)* Los valores numéricos de entrada rechazan `NaN` e `Infinity` (en TS con
+  `Number.isFinite`; en SQL con `CHECK (x <> 'NaN')`). Los formatos de anchura fija (p. ej.
+  `lpad`) no truncan valores mayores que la anchura.
+
 ## TST: tests
 - **TST-1** *(bloqueante)* Toda función nueva de `src/lib/domain/` tiene tests.
 - **TST-2** *(mayor)* Los tests cubren casos límite: cero, negativos, redondeo en el
@@ -81,3 +85,4 @@ devuelve los fallos citando el ID (p. ej. `SEG-2`).
 ## Historial de cambios de directrices
 <!-- Fecha · ID · cambio · motivo. Solo Testing modifica este archivo. -->
 - 2026-11-23 · todas · versión inicial.
+- 2026-11-23 · DOM-7 · nueva · la revisión adversarial de la tarea 1 encontró NaN aceptado y `lpad` truncando.

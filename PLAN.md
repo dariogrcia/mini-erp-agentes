@@ -28,7 +28,7 @@ Responsive (móvil y escritorio), con login y datos aislados por usuario.
   enteras (unidades). Fórmula en COMO-PROGRAMAR §2, Dinero e IVA.
 - **D5 — Estados en la BD (en inglés):** `draft`, `issued`, `paid` y `cancelled`. En la
   UI se muestran como Borrador, Emitida, Pagada y Anulada.
-- **D6 — Numeración:** `AAAA-NNNN` por usuario y año de la fecha de emisión, asignada al
+- **D6 — Numeración:** `AAAA-NNNN` (mínimo 4 dígitos; a partir de 10000 crece) por usuario y año de la fecha de emisión, asignada al
   emitir (los borradores no tienen número). Se guarda en la tabla `invoice_counters`.
 - **D7 — Rutas (en español):** `/login`, `/dashboard`, `/clientes`, `/productos`,
   `/facturas`, `/facturas/nueva`, `/facturas/[id]` y `/api/facturas/export`. La raíz
@@ -117,7 +117,7 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
 ## Tareas
 
 ### Tarea 1 — Migración SQL inicial
-- **Estado:** pendiente
+- **Estado:** hecha
 - **Develop:** Codex · **Modo:** síncrono · **Crítica:** sí
 - **Contexto:** base de todo. Aplica D2, D3, D5 y D6 y la sección "Esquema de datos".
 - **Archivos:** crear `supabase/migrations/0001_init.sql`.
@@ -156,7 +156,7 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
     céntimos, vat_rate de entre VAT_RATES con coerción, y stock y low_stock_threshold
     enteros ≥ 0 con coerción), `invoiceDraftSchema` (customer_id uuid, issue_date ISO,
     due_date opcional ≥ issue_date, notes opcional y `lines` con min 1 de
-    `{product_id?: uuid, description, quantity int > 0, unit_price_cents int ≥ 0, vat_rate}`),
+    `{product_id?: uuid, description (trim, 1..200), quantity int > 0, unit_price_cents int ≥ 0, vat_rate}`),
     `uuidSchema` e `isValidSpanishTaxId(s)` (NIF, NIE y CIF con dígito o letra de control).
   - `csv.ts`: `invoicesToCsv(rows)`. Separador `;`, BOM UTF-8, importes con coma decimal,
     escapa comillas, `;` y saltos de línea. Columnas: Número;Fecha;Cliente;NIF;Base;IVA;Total;Estado.
@@ -171,7 +171,7 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
 - **Contexto:** D1, D7, D8, D9 y D10. SEG-4. Next 16 usa `proxy.ts`.
 - **Archivos:** crear `src/lib/supabase/server.ts`, `src/lib/supabase/client.ts`,
   `src/lib/auth.ts` (`getCurrentUser()`, D10), `src/proxy.ts`, `src/lib/actions/auth.ts`, `src/lib/actions/state.ts` (`ActionState` y
-  `toUserMessage`), `src/lib/types.ts`, `src/app/(auth)/login/page.tsx`,
+  `toUserMessage`: traduce los códigos de las RPC `NOT_FOUND`, `INVOICE_NOT_DRAFT`, `INVOICE_EMPTY`, `INSUFFICIENT_STOCK`, `INVALID_TRANSITION` e `INVALID_LINE`, y los errores de Postgres por `code`, como `23505` duplicado, `23503` FK y `23514` check, a español sin exponer nunca el mensaje crudo), `src/lib/types.ts`, `src/app/(auth)/login/page.tsx`,
   `src/app/(app)/layout.tsx` y `src/components/AppNav.tsx`. Modificar
   `src/app/layout.tsx` (D8, `lang="es"` y metadata), `src/app/page.tsx` (redirect) y
   `src/app/globals.css`.
@@ -277,3 +277,4 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
 
 ## Registro
 <!-- una línea por tarea cerrada: fecha, tarea, Develop, rondas de Testing, notas -->
+- 2026-11-23 · T1 · Codex · 2 rondas y revisión adversarial · 5 fallos corregidos en `0002_hardening.sql` (aplicadas 0001 y 0002).
