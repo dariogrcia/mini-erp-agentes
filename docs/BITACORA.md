@@ -134,3 +134,18 @@ hicieron falta y qué fallos se encontraron. Los informes completos de Testing e
   `usePathname()` rompía el build con Cache Components. Desviación justificada y aceptada.
 - F1 (un aviso de "límite excedido" engañoso cuando falla una línea): lo corrige el Orquestador.
   F2 (borradores no idempotentes): **excepción a D12** documentada en el plan.
+
+## 2026-11-23 · Tarea 7: ciclo de vida de la factura (Develop: Codex)
+- Codex la ejecutó como trabajo en segundo plano propio. Como el resultado lo recoge Darío
+  con `/codex:result`, el Orquestador no recibe aviso automático: vigila los archivos en disco.
+- **Incidencia:** Codex editó `PLAN.md`, y `AGENTS.md` lo prohíbe. El Orquestador lo revierte.
+- **Testing, ronda 1: APROBADA.** Probado en vivo: ciclo emitir→pagar y emitir→anular (el
+  stock se repone); con stock insuficiente no cambia nada. **Concurrencia:** dos "Emitir"
+  simultáneos dan un solo número y un solo descuento de stock, y dos borradores que compiten
+  por la última unidad nunca dejan stock negativo. El CSV da 401 sin sesión, sale sin
+  borradores ni datos ajenos y con protección contra fórmulas.
+- Menores: el layout se tocó para imprimir (justificado). El Orquestador corrige el orden
+  del CSV (fecha + número con comparación numérica, D6). F4 (un test que comprueba clases
+  CSS) se acepta.
+- Estado al pausar la sesión (2026-11-24): commit en la rama `tarea-7-ciclo-factura`,
+  **sin mergear**. Falta la revisión adversarial (zona crítica).

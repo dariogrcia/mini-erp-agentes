@@ -258,7 +258,7 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
 - **Verificación:** `npm run verify` en verde.
 
 ### Tarea 7 — Detalle de factura: ciclo de vida, impresión y CSV
-- **Estado:** pendiente
+- **Estado:** en revisión (Testing APROBADA ronda 1; falta revisión adversarial y merge)
 - **Develop:** Codex · **Modo:** síncrono · **Crítica:** sí (stock e importes)
 - **Contexto:** D3, D5 y D6. DOM-3, DOM-4 y UX-6.
 - **Archivos:** `src/app/(app)/facturas/[id]/page.tsx`, ampliar
