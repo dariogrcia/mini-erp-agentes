@@ -191,4 +191,5 @@ hicieron falta y qué fallos se encontraron. Los informes completos de Testing e
 - **Testing, ronda 1: APROBADA.** Sin secretos en 25 commits ni en el bundle. 3 menores
   corregidos por el Orquestador: F3, guarda `app_metadata.demo` para que un `DEMO_EMAIL`
   equivocado no borre una cuenta real; F4, texto del CSV en el README; F2, esta entrada.
-  F1 (registro público activo en Supabase Auth) se desactiva en el panel.
+  F1: registro público desactivado con `supabase config push` (solo `enable_signup`). Comprobado:
+  un alta nueva da "Signups not allowed" y el login demo sigue funcionando.
