@@ -49,3 +49,6 @@ supabase/.branches
 
 # agent worktrees
 .claude/worktrees/
+
+# delivery email (private, not part of the public repo)
+docs/ENTREGA.md
