@@ -4,9 +4,7 @@ import { toCents } from "@/lib/domain/money";
 import { createClient } from "@/lib/supabase/server";
 import type { InvoiceRow } from "@/lib/types";
 
-type ExportInvoice = Pick<InvoiceRow, "id" | "number" | "issue_date" | "subtotal" | "vat_total" | "total" | "status"> & {
-  customers: { name: string; tax_id: string | null } | null;
-};
+type ExportInvoice = Pick<InvoiceRow, "id" | "number" | "issue_date" | "subtotal" | "vat_total" | "total" | "status" | "customer_name" | "customer_tax_id">;
 
 const PRIVATE_HEADERS = { "Cache-Control": "private, no-store" };
 
@@ -23,7 +21,7 @@ export async function GET() {
   // Keyset pagination avoids silently truncating the export at PostgREST's row limit.
   for (;;) {
     let query = supabase.from("invoices")
-      .select("id, number, issue_date, subtotal, vat_total, total, status, customers(name, tax_id)")
+      .select("id, number, issue_date, subtotal, vat_total, total, status, customer_name, customer_tax_id")
       .eq("owner_id", user.id).neq("status", "draft").order("id").limit(500);
     if (lastId) query = query.gt("id", lastId);
     const { data, error } = await query.overrideTypes<ExportInvoice[], { merge: false }>();
@@ -33,7 +31,7 @@ export async function GET() {
     try {
       rows.push(...data.map((invoice) => ({
         number: invoice.number, issueDate: invoice.issue_date,
-        customerName: invoice.customers?.name ?? "", taxId: invoice.customers?.tax_id ?? null,
+        customerName: invoice.customer_name ?? "", taxId: invoice.customer_tax_id,
         subtotalCents: toCents(invoice.subtotal), vatTotalCents: toCents(invoice.vat_total),
         totalCents: toCents(invoice.total), status: invoice.status,
       })));

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { cancelInvoice, deleteDraft, issueInvoice, markPaid } from "./invoices";
+import { cancelInvoice, deleteDraft, issueInvoice, markPaid, saveDraft } from "./invoices";
 import { initialActionState } from "./state";
 
 const mocks = vi.hoisted(() => ({
@@ -125,5 +125,62 @@ describe("deleteDraft", () => {
       ok: false, message: "Ha ocurrido un error inesperado. Inténtalo de nuevo.",
     });
     expect(mocks.redirect).not.toHaveBeenCalled();
+  });
+});
+
+const version = "2026-11-25T09:10:11.123456+00:00";
+
+function draftForm(editing = true) {
+  const data = new FormData();
+  if (editing) {
+    data.set("invoice_id", id);
+    data.set("updated_at", version);
+  }
+  data.set("customer_id", ownerId);
+  data.set("issue_date", "2026-11-25");
+  data.set("notes", "Mis notas sin guardar");
+  data.set("line_product_id", "");
+  data.set("line_description", "Servicio editado");
+  data.set("line_quantity", "2");
+  data.set("line_unit_price", "12,50");
+  data.set("line_vat_rate", "21");
+  return data;
+}
+
+describe("draft optimistic concurrency", () => {
+  it("passes the exact version to the RPC without losing microseconds", async () => {
+    mocks.rpc.mockResolvedValue({ data: id, error: null });
+    await expect(saveDraft(initialActionState, draftForm())).rejects.toThrow(`REDIRECT:/facturas/${id}?guardado=1`);
+    expect(mocks.rpc).toHaveBeenCalledWith("save_draft_invoice", expect.objectContaining({
+      p_invoice_id: id, p_expected_updated_at: version,
+      p_lines: [{ product_id: null, description: "Servicio editado", quantity: 2, unit_price: "12.50", vat_rate: 21 }],
+    }));
+  });
+
+  it("reports a stale draft without refreshing or redirecting away from unsaved edits", async () => {
+    mocks.rpc.mockResolvedValue({ data: null, error: { code: "P0001", message: "STALE_DRAFT" } });
+    const data = draftForm();
+    expect(await saveDraft(initialActionState, data)).toEqual({
+      ok: false, message: "Este registro ha cambiado desde que lo abriste. Recarga para ver la versión actual.",
+    });
+    expect(data.get("notes")).toBe("Mis notas sin guardar");
+    expect(mocks.revalidatePath).not.toHaveBeenCalled();
+    expect(mocks.redirect).not.toHaveBeenCalled();
+  });
+
+  it.each([null, "", "invalid", "Infinity", "2026-02-30T12:00:00Z", new Blob([version])])("rejects a missing or invalid edit version: %s", async (value) => {
+    const data = draftForm();
+    if (value === null) data.delete("updated_at");
+    else data.set("updated_at", value);
+    expect(await saveDraft(initialActionState, data)).toMatchObject({ ok: false });
+    expect(mocks.createClient).not.toHaveBeenCalled();
+  });
+
+  it("creates drafts with a null expected version", async () => {
+    mocks.rpc.mockResolvedValue({ data: id, error: null });
+    await expect(saveDraft(initialActionState, draftForm(false))).rejects.toThrow("REDIRECT:");
+    expect(mocks.rpc).toHaveBeenCalledWith("save_draft_invoice", expect.objectContaining({
+      p_invoice_id: null, p_expected_updated_at: null,
+    }));
   });
 });

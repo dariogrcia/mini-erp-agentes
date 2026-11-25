@@ -73,7 +73,7 @@ async function EditInvoiceSection({ params }: Pick<EditProps, "params">) {
   let editorProducts;
   try {
     initial = {
-      id, customerId: invoice.customer_id, issueDate: invoice.issue_date,
+      id, updatedAt: invoice.updated_at, customerId: invoice.customer_id, issueDate: invoice.issue_date,
       dueDate: invoice.due_date, notes: invoice.notes,
       lines: lines.map((line) => ({
         productId: line.product_id, description: line.description, quantity: line.quantity,

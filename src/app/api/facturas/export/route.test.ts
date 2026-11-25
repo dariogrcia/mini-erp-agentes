@@ -7,7 +7,8 @@ vi.mock("@/lib/supabase/server", () => ({ createClient: mocks.createClient }));
 const row = {
   id: "12345678-1234-4234-8234-123456789abc", number: "2026-0001", issue_date: "2026-11-23",
   subtotal: "37.50", vat_total: "7.88", total: "45.38", status: "issued",
-  customers: { name: '=HYPERLINK("url";"Taller")', tax_id: "12345678Z" },
+  customer_name: '=HYPERLINK("url";"Taller")', customer_tax_id: "12345678Z",
+  customers: { name: "Changed customer", tax_id: "87654321X" },
 };
 const header = "\uFEFFNúmero;Fecha;Cliente;NIF;Base;IVA;Total;Estado\r\n";
 
@@ -53,6 +54,8 @@ describe("invoice CSV endpoint", () => {
     expect(response.headers.get("Content-Disposition")).toBe('attachment; filename="facturas.csv"');
     expect(response.headers.get("Cache-Control")).toBe("private, no-store");
     expect(query.eq).toHaveBeenCalledWith("owner_id", "owner-id");
+    expect(query.select).toHaveBeenCalledWith(expect.stringContaining("customer_name, customer_tax_id"));
+    expect(query.select.mock.calls[0][0]).not.toContain("customers(");
     expect(query.neq).toHaveBeenCalledWith("status", "draft");
     expect(await csvText(response)).toBe(header +
       '2026-0001;2026-11-23;"\'=HYPERLINK(""url"";""Taller"")";12345678Z;37,50;7,88;45,38;Emitida\r\n');
@@ -69,6 +72,15 @@ describe("invoice CSV endpoint", () => {
     expect(output).toContain(";Pagada\r\n");
     expect(output).toContain(";Anulada\r\n");
     expect(output.split("\r\n")).toHaveLength(5);
+  });
+
+  it.each(["issued", "paid", "cancelled"])("never falls back to the customer join for %s", async (status) => {
+    batch([{ ...row, status, customer_name: null, customer_tax_id: null }]);
+    batch([]);
+    const output = await csvText(await GET());
+    expect(output).toContain("2026-0001;2026-11-23;;;37,50");
+    expect(output).not.toContain("Changed customer");
+    expect(output).not.toContain("87654321X");
   });
 
   it("returns a valid header-only download for an empty account", async () => {

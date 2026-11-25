@@ -5,13 +5,12 @@ import { z } from "zod";
 import { fromCents } from "@/lib/domain/money";
 import { productSchema, uuidSchema } from "@/lib/domain/validation";
 import { createClient } from "@/lib/supabase/server";
-import { toUserMessage, type ActionState } from "./state";
+import { CONFLICT_MESSAGE as CONFLICT, toUserMessage, type ActionState } from "./state";
 
 const LIST_PATH = "/productos";
 const SESSION_EXPIRED = "Tu sesión ha caducado. Vuelve a iniciar sesión.";
 const NOT_FOUND = "El producto no existe o ya se ha eliminado.";
 const DUPLICATE_SKU = "Ya existe un producto con ese SKU";
-const CONFLICT = "Este registro ha cambiado desde que lo abriste. Recarga para ver la versión actual.";
 const INVALID_TARGET = "No se ha podido identificar el producto. Recarga la página e inténtalo de nuevo.";
 const PRODUCT_FIELDS = ["sku", "name", "unit_price", "vat_rate", "stock", "low_stock_threshold"] as const;
 

@@ -60,6 +60,19 @@ Responsive (móvil y escritorio), con login y datos aislados por usuario.
   *Excepción:* los **borradores de factura** no son idempotentes al crearse (la RPC crea uno por
   llamada). Se acepta porque un borrador duplicado no tiene número ni mueve stock y se puede
   borrar. Mitigación: bloqueo de doble envío en el editor (tarea 6).
+- **D13 — Concurrencia optimista en borradores de factura:** `invoices.updated_at
+  timestamptz not null default now()`, mantenido por el trigger `set_updated_at` de la
+  migración `0003`. `save_draft_invoice` recibe `p_expected_updated_at timestamptz`: al
+  actualizar (id no null) es obligatorio y se compara **bajo el `for update`** antes de tocar
+  nada; si difiere, lanza `STALE_DRAFT`. La acción lo traduce al mismo mensaje de conflicto de
+  D11 y conserva lo escrito. Motivo: revisión adversarial de la tarea 7 (una pestaña borraba
+  sin aviso las líneas guardadas desde otra).
+- **D14 — Copia inmutable del destinatario al emitir:** `invoices.customer_name`,
+  `customer_tax_id` y `customer_address` (text, null en borradores). `issue_invoice` los
+  copia de `customers` dentro de su transacción. Check: `status = 'draft' or customer_name is
+  not null`. En facturas no borrador, detalle, impresión, listado y CSV usan **solo** la copia
+  (nunca el join a `customers`). Motivo: revisión adversarial de la tarea 7 (editar un cliente
+  cambiaba facturas ya emitidas; en España una factura emitida no se altera).
 
 ## Esquema de datos (contrato de la tarea 1)
 ```
@@ -258,7 +271,7 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
 - **Verificación:** `npm run verify` en verde.
 
 ### Tarea 7 — Detalle de factura: ciclo de vida, impresión y CSV
-- **Estado:** en revisión (Testing APROBADA ronda 1; falta revisión adversarial y merge)
+- **Estado:** hecha
 - **Develop:** Codex · **Modo:** síncrono · **Crítica:** sí (stock e importes)
 - **Contexto:** D3, D5 y D6. DOM-3, DOM-4 y UX-6.
 - **Archivos:** `src/app/(app)/facturas/[id]/page.tsx`, ampliar
@@ -276,6 +289,45 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
     (`Content-Disposition: attachment; filename="facturas.csv"`), 401 sin sesión.
 - **No hacer:** no modificar el SQL. Si falta algo en la BD, detente y avisa.
 - **Verificación:** `npm run verify` en verde.
+
+#### Tarea 7 — Corrección tras la revisión adversarial (D13 y D14)
+- **Informe:** `docs/reviews/tarea-7-adversarial.md` (F1 y F2).
+- **Archivos:** nueva `supabase/migrations/0004_invoice_version_snapshot.sql`,
+  `src/lib/types.ts`, `src/lib/actions/invoices.ts`, `src/lib/actions/state.ts` (si hace
+  falta traducir `STALE_DRAFT`), `src/components/InvoiceEditor.tsx`,
+  `src/app/(app)/facturas/[id]/editar/page.tsx`, `src/app/(app)/facturas/[id]/page.tsx`,
+  `InvoiceDocument.tsx`, `src/app/(app)/facturas/page.tsx` y
+  `src/app/api/facturas/export/route.ts`, más sus tests.
+- **Contrato SQL (`0004`):**
+  - `alter table invoices add updated_at timestamptz not null default now()` y trigger
+    `before update` con `public.set_updated_at()` (ya existe en `0003`).
+  - Añadir `customer_name`, `customer_tax_id` y `customer_address` (text, null). Backfill:
+    copiar de `customers` en todas las facturas con `status <> 'draft'`. Después, check
+    `invoices_snapshot_check (status = 'draft' or customer_name is not null)`.
+  - `drop function` de la firma antigua de `save_draft_invoice` (6 args) y crear la nueva con
+    `p_expected_updated_at timestamptz` como 7.º parámetro. Mantener todo lo de `0002`
+    (validaciones, errores, `security definer`, `set search_path = ''`). Al actualizar: si
+    `p_expected_updated_at` es null o distinto del `updated_at` leído con `for update`, lanza
+    `STALE_DRAFT`. Orden de comprobaciones: `NOT_FOUND` → `INVOICE_NOT_DRAFT` →
+    `STALE_DRAFT`. Repetir `revoke all … from public, anon` y `grant execute … to
+    authenticated` con la firma nueva.
+  - `create or replace issue_invoice`: igual que en `0002`, y además, bajo el mismo bloqueo,
+    `update` de las 3 columnas de copia leyendo el cliente de la factura.
+  - No editar `0001`–`0003` (ya aplicadas).
+- **Contrato app:**
+  - El editor envía `updated_at` en un campo oculto **como la cadena leída de la BD** (nunca
+    pasarla por `Date`: falso conflicto ya visto en la tarea 4). Con `STALE_DRAFT`, la acción
+    devuelve el mensaje de conflicto de D11 y conserva los valores del formulario.
+  - Facturas no borrador: detalle, documento imprimible, listado y CSV muestran
+    `customer_name`/`customer_tax_id`/`customer_address` de la propia factura. Los
+    borradores siguen usando el join a `customers`. Sin email ni teléfono en el documento de
+    una factura emitida.
+- **No hacer:** no tocar el dashboard (no existe en esta rama; lo adapta el Orquestador al
+  mergear). No cambiar D1–D12. No aplicar la migración en Supabase (lo hace el Orquestador).
+  No editar `PLAN.md` ni hacer commit.
+- **Verificación:** `npm run verify` en verde y tests nuevos que cubran: mensaje de conflicto
+  con `STALE_DRAFT`, que el campo oculto lleva la cadena exacta, y que el CSV/listado usan la
+  copia y no el join en facturas no borrador.
 
 ### Tarea 8 — Panel (dashboard)
 - **Estado:** pendiente
@@ -302,3 +354,4 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
 <!-- una línea por tarea cerrada: fecha, tarea, Develop, rondas de Testing, notas -->
 - 2026-11-23 · T1 · Codex · 2 rondas y revisión adversarial · 5 fallos corregidos en `0002_hardening.sql` (aplicadas 0001 y 0002).
 - 2026-11-23 · T2 · Codex · 2 rondas · 262 tests; 6 menores corregidos (CIF N/R, NIF K/L/M, fechas 1900–2999, `-0`, CSV anti-fórmulas `'`).
+- 2026-11-25 · T7 · Codex · 2 rondas y revisión adversarial · adversarial: 2 medios → D13 (versión de borrador, `STALE_DRAFT`) y D14 (copia del destinatario al emitir), migración `0004` aplicada; 2 menores de la ronda 2 corregidos por el Orquestador.

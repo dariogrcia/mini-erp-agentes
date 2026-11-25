@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { z } from "zod";
+import { z } from "zod";
 import { fromCents, toCents } from "@/lib/domain/money";
 import { invoiceDraftSchema, uuidSchema } from "@/lib/domain/validation";
 import { createClient } from "@/lib/supabase/server";
@@ -78,6 +78,9 @@ export async function saveDraft(_prev: ActionState, formData: FormData): Promise
   const invoiceId = rawInvoiceId === "" ? null : uuidSchema.safeParse(rawInvoiceId).data;
   if (invoiceId === undefined) return { ok: false, message: INVALID_TARGET };
 
+  const version = invoiceId === null ? null : z.iso.datetime({ offset: true }).safeParse(formData.get("updated_at"));
+  if (version && !version.success) return { ok: false, message: INVALID_TARGET };
+
   const columns = LINE_FIELDS.map((key) => readAll(formData, key));
   const lineCount = columns[0].length;
   if (columns.some((column) => column.length !== lineCount) || lineCount > MAX_LINES) {
@@ -125,6 +128,7 @@ export async function saveDraft(_prev: ActionState, formData: FormData): Promise
   const draft = parsed.data;
   const { data: savedId, error } = await supabase.rpc("save_draft_invoice", {
     p_invoice_id: invoiceId,
+    p_expected_updated_at: version?.data ?? null,
     p_customer_id: draft.customer_id,
     p_issue_date: draft.issue_date,
     p_due_date: draft.due_date ?? null,

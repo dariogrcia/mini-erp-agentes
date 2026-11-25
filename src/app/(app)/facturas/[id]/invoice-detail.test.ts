@@ -16,8 +16,10 @@ const invoice: InvoiceDetail = {
   id, owner_id: id, customer_id: id, number: "2026-0001", status: "issued",
   issue_date: "2026-11-23", due_date: "2026-12-23", notes: "Entrega por la tarde",
   subtotal: "25.00", vat_total: "5.25", total: "30.25", created_at: "2026-11-23T12:00:00Z",
+  updated_at: "2026-11-23T12:00:00.123456+00:00",
+  customer_name: "Taller García", customer_tax_id: "12345678Z", customer_address: "Calle Mayor, 1",
   issued_at: "2026-11-23T12:00:00Z", paid_at: null, cancelled_at: null,
-  customers: { name: "Taller García", tax_id: "12345678Z", email: "taller@example.test", phone: "600000000", address: "Calle Mayor, 1" },
+  customers: { name: "Cliente modificado", tax_id: "87654321X", email: "taller@example.test", phone: "600000000", address: "Dirección nueva" },
 };
 const line: InvoiceLineRow = {
   id, owner_id: id, invoice_id: id, product_id: null, position: 0, description: "Servicio",
@@ -43,9 +45,26 @@ describe("invoice detail presentation", () => {
 
   it("renders customer details, localized dates, amounts and notes", () => {
     const html = renderToStaticMarkup(createElement(InvoiceDocument, { invoice, lines: [line] }));
-    for (const text of ["2026-0001", "Taller García", "12345678Z", "taller@example.test", "600000000", "Calle Mayor, 1", "23 nov 2026", "23 dic 2026", "30,25", "Entrega por la tarde"]) {
+    for (const text of ["2026-0001", "Taller García", "12345678Z", "Calle Mayor, 1", "23 nov 2026", "23 dic 2026", "30,25", "Entrega por la tarde"]) {
       expect(html).toContain(text);
     }
+  });
+
+  it.each(["issued", "paid", "cancelled"] as const)("uses only the frozen recipient for %s", (status) => {
+    const html = renderToStaticMarkup(createElement(InvoiceDocument, { invoice: { ...invoice, status }, lines: [line] }));
+    for (const text of ["Taller García", "12345678Z", "Calle Mayor, 1"]) expect(html).toContain(text);
+    for (const text of ["Cliente modificado", "87654321X", "Dirección nueva", "taller@example.test", "600000000"]) expect(html).not.toContain(text);
+    const withoutOptionalFields = renderToStaticMarkup(createElement(InvoiceDocument, {
+      invoice: { ...invoice, status, customer_tax_id: null, customer_address: null }, lines: [line],
+    }));
+    expect(withoutOptionalFields).not.toContain("87654321X");
+    expect(withoutOptionalFields).not.toContain("Dirección nueva");
+  });
+
+  it("keeps current recipient contact details for drafts", () => {
+    const html = renderToStaticMarkup(createElement(InvoiceDocument, { invoice: { ...invoice, status: "draft" }, lines: [line] }));
+    for (const text of ["Cliente modificado", "87654321X", "Dirección nueva", "taller@example.test", "600000000"]) expect(html).toContain(text);
+    expect(html).not.toContain("Taller García");
   });
 
   it("renders stored line and header amounts without recomputing from current prices", () => {

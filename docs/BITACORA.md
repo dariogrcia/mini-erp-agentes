@@ -149,3 +149,21 @@ hicieron falta y qué fallos se encontraron. Los informes completos de Testing e
   CSS) se acepta.
 - Estado al pausar la sesión (2026-11-24): commit en la rama `tarea-7-ciclo-factura`,
   **sin mergear**. Falta la revisión adversarial (zona crítica).
+
+### 2026-11-25 · Tarea 7: revisión adversarial y cierre
+- **Adversarial (Codex): needs-attention.** F1, un borrador abierto en dos pestañas perdía
+  líneas sin aviso. F2, editar un cliente cambiaba facturas ya emitidas. Salen **D13** (versión
+  del borrador comprobada bajo el bloqueo, `STALE_DRAFT`) y **D14** (copia inmutable del
+  destinatario al emitir). Migración `0004`, aplicada.
+- **Incidencia:** `/codex:rescue --resume` falló en 0 s (el hilo era de otra sesión). Con
+  `--fresh` funcionó, porque todo el contexto estaba en PLAN.md. Codex no pudo ejecutar el
+  build (su sandbox no abre puertos): lo ejecutó el Orquestador.
+- El Orquestador añade una defensa en `issue_invoice`: `NOT_FOUND` si la copia no actualiza
+  ninguna fila, para no consumir número ni stock sobre un borrador.
+- **Testing, ronda 2: APROBADA** con 35 de 35 pruebas en vivo. Conflicto entre pestañas,
+  carreras en paralelo sin líneas mezcladas y ningún falso conflicto con la cadena de PostgREST.
+  La copia no cambia al editar el cliente y no se puede escribir directamente. 2 menores (test
+  que dependía del orden de atributos y mensaje de conflicto repetido) corregidos por el
+  Orquestador con `CONFLICT_MESSAGE`.
+- **Lección:** la revisión adversarial encontró dos fallos de diseño que Testing aprobó en la
+  ronda 1. En las zonas críticas no se puede saltar.

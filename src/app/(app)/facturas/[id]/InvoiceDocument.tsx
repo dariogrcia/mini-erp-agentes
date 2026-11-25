@@ -16,7 +16,13 @@ function date(isoDate: string) {
 
 /** Stored amounts are the source of truth; printing never recalculates an invoice. */
 export function InvoiceDocument({ invoice, lines }: { invoice: InvoiceDetail; lines: InvoiceLineRow[] }) {
-  const customer = invoice.customers;
+  const customer = invoice.status === "draft" ? invoice.customers : {
+    name: invoice.customer_name,
+    tax_id: invoice.customer_tax_id,
+    address: invoice.customer_address,
+    email: null,
+    phone: null,
+  };
   return (
     <article className="min-w-0 space-y-6 rounded-2xl border border-line bg-surface p-4 shadow-xs sm:p-6 print:rounded-none print:border-0 print:p-0 print:shadow-none">
       <div className="flex flex-wrap items-start justify-between gap-3">

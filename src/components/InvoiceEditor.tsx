@@ -20,6 +20,7 @@ export type EditorLine = {
 /** Draft being edited (task 7 route `/facturas/[id]/editar`). */
 export type InvoiceEditorInitial = {
   id: string;
+  updatedAt: string;
   customerId: string;
   issueDate: string;
   dueDate: string | null;
@@ -171,7 +172,10 @@ export function InvoiceEditor({ customers, products, defaultIssueDate, initial }
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-6">
-      {initial ? <input type="hidden" name="invoice_id" value={initial.id} /> : null}
+      {initial ? <>
+        <input type="hidden" name="invoice_id" value={initial.id} />
+        <input type="hidden" name="updated_at" value={initial.updatedAt} />
+      </> : null}
       {state.message && !state.ok ? <FormMessage ok={false}>{state.message}</FormMessage> : null}
 
       <HeaderFields baseId={baseId} customers={customers} initial={initial} defaultIssueDate={defaultIssueDate} errors={errors} />
