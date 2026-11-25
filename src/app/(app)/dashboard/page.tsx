@@ -24,7 +24,7 @@ const NEW_INVOICE_HREF = "/facturas/nueva";
 const LOAD_ERROR = "No se han podido cargar los datos del panel. Recarga la página.";
 
 type StockItem = Pick<ProductRow, "id" | "sku" | "name" | "stock" | "low_stock_threshold">;
-type RecentInvoice = Pick<InvoiceRow, "id" | "number" | "status" | "issue_date" | "total"> & {
+type RecentInvoice = Pick<InvoiceRow, "id" | "number" | "status" | "issue_date" | "total" | "customer_name"> & {
   customers: { name: string } | null;
 };
 type Loaded<T> = { data: T; error: string | null };
@@ -60,7 +60,7 @@ const loadRecentInvoices = cache(async (): Promise<Loaded<RecentInvoice[]>> => {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("invoices")
-    .select("id, number, status, issue_date, total, customers(name)")
+    .select("id, number, status, issue_date, total, customer_name, customers(name)")
     .order("issue_date", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(RECENT_LIMIT)
@@ -296,7 +296,7 @@ async function RecentInvoicesSection() {
                 {invoice.number ?? "Borrador"}
                 <span className="font-normal text-muted"> · {formatDate(invoice.issue_date)}</span>
               </p>
-              <p className="truncate text-sm text-muted">{invoice.customers?.name ?? "Cliente eliminado"}</p>
+              <p className="truncate text-sm text-muted">{(invoice.status === "draft" ? invoice.customers?.name : invoice.customer_name) ?? "Cliente no disponible"}</p>
             </div>
             <div className="flex shrink-0 flex-col items-end gap-1">
               <span className="text-sm font-semibold text-ink">{formatTotal(invoice.total)}</span>
