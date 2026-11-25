@@ -16,12 +16,16 @@ export type ActionState = {
 
 export const initialActionState: ActionState = { ok: false };
 
+/** Optimistic-concurrency conflict (D11, D13). */
+export const CONFLICT_MESSAGE = "Este registro ha cambiado desde que lo abriste. Recarga para ver la versión actual.";
+
 const GENERIC_MESSAGE = "Ha ocurrido un error inesperado. Inténtalo de nuevo.";
 
 /** Business codes raised by the invoice functions (`raise exception '<CODE>'`). */
 const RPC_MESSAGES: Record<string, string> = {
   NOT_FOUND: "No se ha encontrado el registro o no tienes acceso a él.",
   INVOICE_NOT_DRAFT: "La factura ya no es un borrador y no se puede modificar.",
+  STALE_DRAFT: CONFLICT_MESSAGE,
   INVOICE_EMPTY: "La factura tiene que tener al menos una línea.",
   INSUFFICIENT_STOCK: "No hay stock suficiente para emitir la factura.",
   INVALID_TRANSITION: "Esta acción no está permitida en el estado actual de la factura.",

@@ -21,8 +21,8 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
           }
         />
       </Suspense>
-      <main className="flex-1 pb-24 md:pb-0 md:pl-60">
-        <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <main className="flex-1 pb-24 md:pb-0 md:pl-60 print:pb-0 print:pl-0">
+        <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8 print:max-w-none print:p-0">
           <Suspense fallback={<ContentSkeleton />}>
             <RequireUser>{children}</RequireUser>
           </Suspense>

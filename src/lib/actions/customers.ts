@@ -4,13 +4,12 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { customerSchema, uuidSchema } from "@/lib/domain/validation";
 import { createClient } from "@/lib/supabase/server";
-import { toUserMessage, type ActionState } from "./state";
+import { CONFLICT_MESSAGE as CONFLICT, toUserMessage, type ActionState } from "./state";
 
 const LIST_PATH = "/clientes";
 const SESSION_EXPIRED = "Tu sesión ha caducado. Vuelve a iniciar sesión.";
 const NOT_FOUND = "El cliente no existe o ya se ha eliminado.";
 const HAS_INVOICES = "No se puede eliminar: tiene facturas asociadas";
-const CONFLICT = "Este registro ha cambiado desde que lo abriste. Recarga para ver la versión actual.";
 const INVALID_TARGET = "No se ha podido identificar el cliente. Recarga la página e inténtalo de nuevo.";
 
 const CUSTOMER_FIELDS = ["name", "tax_id", "email", "phone", "address"] as const;

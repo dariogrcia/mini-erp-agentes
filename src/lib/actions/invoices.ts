@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { z } from "zod";
+import { z } from "zod";
 import { fromCents, toCents } from "@/lib/domain/money";
 import { invoiceDraftSchema, uuidSchema } from "@/lib/domain/validation";
 import { createClient } from "@/lib/supabase/server";
@@ -78,6 +78,9 @@ export async function saveDraft(_prev: ActionState, formData: FormData): Promise
   const invoiceId = rawInvoiceId === "" ? null : uuidSchema.safeParse(rawInvoiceId).data;
   if (invoiceId === undefined) return { ok: false, message: INVALID_TARGET };
 
+  const version = invoiceId === null ? null : z.iso.datetime({ offset: true }).safeParse(formData.get("updated_at"));
+  if (version && !version.success) return { ok: false, message: INVALID_TARGET };
+
   const columns = LINE_FIELDS.map((key) => readAll(formData, key));
   const lineCount = columns[0].length;
   if (columns.some((column) => column.length !== lineCount) || lineCount > MAX_LINES) {
@@ -125,6 +128,7 @@ export async function saveDraft(_prev: ActionState, formData: FormData): Promise
   const draft = parsed.data;
   const { data: savedId, error } = await supabase.rpc("save_draft_invoice", {
     p_invoice_id: invoiceId,
+    p_expected_updated_at: version?.data ?? null,
     p_customer_id: draft.customer_id,
     p_issue_date: draft.issue_date,
     p_due_date: draft.due_date ?? null,
@@ -146,4 +150,62 @@ export async function saveDraft(_prev: ActionState, formData: FormData): Promise
   revalidatePath(LIST_PATH);
   revalidatePath(`${LIST_PATH}/${id}`);
   redirect(`${LIST_PATH}/${id}?guardado=1`);
+}
+
+type LifecycleRpc = "issue_invoice" | "mark_invoice_paid" | "cancel_invoice";
+
+function revalidateInvoice(id: string) {
+  revalidatePath(LIST_PATH);
+  revalidatePath(`${LIST_PATH}/${id}`);
+  revalidatePath(`${LIST_PATH}/${id}/editar`);
+  revalidatePath("/dashboard");
+}
+
+/** The RPC locks the invoice and enforces ownership, transitions and stock atomically. */
+async function transitionInvoice(formData: FormData, rpc: LifecycleRpc, message: string): Promise<ActionState> {
+  const id = uuidSchema.safeParse(formData.get("id")).data;
+  if (!id) return { ok: false, message: INVALID_TARGET };
+
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) return { ok: false, message: SESSION_EXPIRED };
+
+  const { error } = await supabase.rpc(rpc, { p_invoice_id: id });
+  if (error) return { ok: false, message: toUserMessage(error) };
+
+  revalidateInvoice(id);
+  if (rpc !== "mark_invoice_paid") revalidatePath("/productos");
+  return { ok: true, message };
+}
+
+export async function issueInvoice(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return transitionInvoice(formData, "issue_invoice", "Factura emitida.");
+}
+
+export async function markPaid(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return transitionInvoice(formData, "mark_invoice_paid", "Factura marcada como pagada.");
+}
+
+export async function cancelInvoice(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  return transitionInvoice(formData, "cancel_invoice", "Factura anulada. Se ha repuesto el stock.");
+}
+
+export async function deleteDraft(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const id = uuidSchema.safeParse(formData.get("id")).data;
+  if (!id) return { ok: false, message: INVALID_TARGET };
+
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) return { ok: false, message: SESSION_EXPIRED };
+
+  // Keep the draft check in the DELETE itself: a concurrent issue must prevent deletion.
+  const { data, error } = await supabase.from("invoices").delete()
+    .eq("id", id).eq("owner_id", user.id).eq("status", "draft").select("id");
+  if (error) return { ok: false, message: toUserMessage(error) };
+  if (!data?.length) {
+    return { ok: false, message: "No se ha eliminado la factura: no existe, no tienes acceso o ya no es un borrador." };
+  }
+
+  revalidateInvoice(id);
+  redirect(LIST_PATH);
 }

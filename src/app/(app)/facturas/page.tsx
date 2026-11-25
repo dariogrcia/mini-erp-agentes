@@ -21,7 +21,7 @@ const STATUSES = Object.keys(STATUS_LABEL) as InvoiceStatus[];
 
 type SearchParams = PageProps<"/facturas">["searchParams"];
 
-type InvoiceListItem = Pick<InvoiceRow, "id" | "number" | "status" | "issue_date" | "total"> & {
+type InvoiceListItem = Pick<InvoiceRow, "id" | "number" | "status" | "issue_date" | "total" | "customer_name"> & {
   customers: { name: string } | null;
 };
 
@@ -85,7 +85,7 @@ async function InvoicesSection({ searchParams }: { searchParams: SearchParams })
 
   let query = supabase
     .from("invoices")
-    .select("id, number, status, issue_date, total, customers(name)")
+    .select("id, number, status, issue_date, total, customer_name, customers(name)")
     .order("issue_date", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(LIST_LIMIT + 1);
@@ -187,7 +187,7 @@ function InvoiceList({ invoices }: { invoices: InvoiceListItem[] }) {
                 <p className="font-medium text-ink">{invoiceTitle(invoice)}</p>
                 <StatusBadge status={invoice.status} />
               </div>
-              <p className="mt-1 text-sm break-words text-muted">{invoice.customers?.name ?? "Cliente eliminado"}</p>
+              <p className="mt-1 text-sm break-words text-muted">{(invoice.status === "draft" ? invoice.customers?.name : invoice.customer_name) ?? "Cliente no disponible"}</p>
               <div className="mt-3 flex items-end justify-between gap-3 border-t border-line pt-3 text-sm">
                 <span className="text-muted">{formatDate(invoice.issue_date)}</span>
                 <span className="font-semibold text-ink">{formatTotal(invoice.total)}</span>
@@ -216,7 +216,7 @@ function InvoiceList({ invoices }: { invoices: InvoiceListItem[] }) {
                     {invoiceTitle(invoice)}
                   </Link>
                 </td>
-                <td className="px-4 py-3 break-words text-ink">{invoice.customers?.name ?? "Cliente eliminado"}</td>
+                <td className="px-4 py-3 break-words text-ink">{(invoice.status === "draft" ? invoice.customers?.name : invoice.customer_name) ?? "Cliente no disponible"}</td>
                 <td className="px-4 py-3 text-muted">{formatDate(invoice.issue_date)}</td>
                 <td className="px-4 py-3 text-right font-medium text-ink">{formatTotal(invoice.total)}</td>
                 <td className="px-4 py-3">

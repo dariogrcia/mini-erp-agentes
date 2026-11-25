@@ -143,3 +143,36 @@ hicieron falta y qué fallos se encontraron. Los informes completos de Testing e
   registro del plan).
 - Como el checkout principal estaba ocupado por la rama de Codex, el merge a `main` se hace
   desde el propio worktree.
+
+## 2026-11-23 · Tarea 7: ciclo de vida de la factura (Develop: Codex)
+- Codex la ejecutó como trabajo en segundo plano propio. Como el resultado lo recoge Darío
+  con `/codex:result`, el Orquestador no recibe aviso automático: vigila los archivos en disco.
+- **Incidencia:** Codex editó `PLAN.md`, y `AGENTS.md` lo prohíbe. El Orquestador lo revierte.
+- **Testing, ronda 1: APROBADA.** Probado en vivo: ciclo emitir→pagar y emitir→anular (el
+  stock se repone); con stock insuficiente no cambia nada. **Concurrencia:** dos "Emitir"
+  simultáneos dan un solo número y un solo descuento de stock, y dos borradores que compiten
+  por la última unidad nunca dejan stock negativo. El CSV da 401 sin sesión, sale sin
+  borradores ni datos ajenos y con protección contra fórmulas.
+- Menores: el layout se tocó para imprimir (justificado). El Orquestador corrige el orden
+  del CSV (fecha + número con comparación numérica, D6). F4 (un test que comprueba clases
+  CSS) se acepta.
+- Estado al pausar la sesión (2026-11-24): commit en la rama `tarea-7-ciclo-factura`,
+  **sin mergear**. Falta la revisión adversarial (zona crítica).
+
+### 2026-11-25 · Tarea 7: revisión adversarial y cierre
+- **Adversarial (Codex): needs-attention.** F1, un borrador abierto en dos pestañas perdía
+  líneas sin aviso. F2, editar un cliente cambiaba facturas ya emitidas. Salen **D13** (versión
+  del borrador comprobada bajo el bloqueo, `STALE_DRAFT`) y **D14** (copia inmutable del
+  destinatario al emitir). Migración `0004`, aplicada.
+- **Incidencia:** `/codex:rescue --resume` falló en 0 s (el hilo era de otra sesión). Con
+  `--fresh` funcionó, porque todo el contexto estaba en PLAN.md. Codex no pudo ejecutar el
+  build (su sandbox no abre puertos): lo ejecutó el Orquestador.
+- El Orquestador añade una defensa en `issue_invoice`: `NOT_FOUND` si la copia no actualiza
+  ninguna fila, para no consumir número ni stock sobre un borrador.
+- **Testing, ronda 2: APROBADA** con 35 de 35 pruebas en vivo. Conflicto entre pestañas,
+  carreras en paralelo sin líneas mezcladas y ningún falso conflicto con la cadena de PostgREST.
+  La copia no cambia al editar el cliente y no se puede escribir directamente. 2 menores (test
+  que dependía del orden de atributos y mensaje de conflicto repetido) corregidos por el
+  Orquestador con `CONFLICT_MESSAGE`.
+- **Lección:** la revisión adversarial encontró dos fallos de diseño que Testing aprobó en la
+  ronda 1. En las zonas críticas no se puede saltar.

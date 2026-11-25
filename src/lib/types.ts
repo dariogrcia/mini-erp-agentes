@@ -52,6 +52,11 @@ export type InvoiceRow = {
   id: string;
   owner_id: string;
   customer_id: string;
+  customer_name: string | null;
+  customer_tax_id: string | null;
+  customer_address: string | null;
+  /** Row version for optimistic draft concurrency (D13). */
+  updated_at: DbTimestamp;
   number: string | null;
   status: InvoiceStatusDb;
   issue_date: DbDate;
