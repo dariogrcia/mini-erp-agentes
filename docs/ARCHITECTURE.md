@@ -77,6 +77,12 @@ flowchart TB
 4. **Dinero en céntimos enteros.** Así se evitan los errores de coma flotante (0,1 + 0,2).
 5. **Server Components y Server Actions.** Sin capa de API propia ni estado global en el
    cliente: menos código y menos superficie de ataque.
+6. **Concurrencia optimista en todo lo editable.** Clientes, productos y borradores de factura
+   llevan `updated_at`. Si el registro cambió desde que se abrió, se avisa y se conserva lo
+   escrito en vez de pisar el trabajo de otra pestaña (D11 y D13).
+7. **Una factura emitida no cambia.** Al emitir se copian el nombre, el NIF y la dirección del
+   cliente dentro de la factura. Editar el cliente después no altera las facturas ya emitidas,
+   ni su impresión ni el CSV (D14).
 
 ### Modelo de datos
 Ver `PLAN.md` § "Esquema de datos" y `supabase/migrations/`.
