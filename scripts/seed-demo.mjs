@@ -9,7 +9,9 @@
 // inserted as the demo user (RLS), and invoices go through the same SQL functions the
 // app uses, so numbering, totals and stock stay consistent.
 //
-// Re-running is safe: it resets the demo user's data and seeds it again.
+// Re-running is safe: it resets the demo user's data and seeds it again. An existing user is
+// only reset if it carries `app_metadata.demo = true` (set when the script creates it), so a
+// wrong DEMO_EMAIL can never wipe a real account. `--adopt` marks an existing user as demo.
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -99,13 +101,22 @@ async function findUserByEmail(target) {
   }
 }
 
+const adopt = process.argv.includes("--adopt");
 let user = await findUserByEmail(email);
 if (user) {
-  const { error } = await admin.auth.admin.updateUserById(user.id, { password, email_confirm: true });
+  if (user.app_metadata?.demo !== true && !adopt) {
+    console.error(`${email} existe pero no está marcado como cuenta demo. No se toca. Usa --adopt si es la demo.`);
+    process.exit(1);
+  }
+  const { error } = await admin.auth.admin.updateUserById(user.id, {
+    password, email_confirm: true, app_metadata: { ...user.app_metadata, demo: true },
+  });
   check(error, "actualizar usuario demo");
   console.log(`Usuario demo existente: ${email}. Reiniciando sus datos…`);
 } else {
-  const { data, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true });
+  const { data, error } = await admin.auth.admin.createUser({
+    email, password, email_confirm: true, app_metadata: { demo: true },
+  });
   check(error, "crear usuario demo");
   user = data.user;
   console.log(`Usuario demo creado: ${email}`);

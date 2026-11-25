@@ -27,7 +27,7 @@ emitidas, una anulada y borradores). Es una cuenta compartida: si alguien cambia
   - Al emitir se asigna un número correlativo por año (`2026-0001`) y se descuenta el stock en
     la misma transacción. Al anular, el stock se repone.
   - Vista imprimible: "Guardar como PDF" desde el navegador.
-- **Exportación CSV** de las facturas emitidas, pensada para la gestoría (separador `;` y
+- **Exportación CSV** de todas las facturas no borrador (emitidas, pagadas y anuladas), pensada para la gestoría (separador `;` y
   protección contra fórmulas al abrirlo en Excel).
 - Responsive, con login y datos aislados por usuario.
 
@@ -75,6 +75,7 @@ diseño, que salieron como las decisiones D13 y D14.
 ```bash
 npm install
 cp .env.example .env.local   # URL y anon key de tu proyecto Supabase
+npx supabase link --project-ref <ref>
 npx supabase db push         # aplica supabase/migrations/
 npm run dev
 ```

@@ -176,3 +176,19 @@ hicieron falta y qué fallos se encontraron. Los informes completos de Testing e
   Orquestador con `CONFLICT_MESSAGE`.
 - **Lección:** la revisión adversarial encontró dos fallos de diseño que Testing aprobó en la
   ronda 1. En las zonas críticas no se puede saltar.
+
+## 2026-11-25 · Tarea 9: datos demo, despliegue y entrega (Develop: Orquestador)
+- `scripts/seed-demo.mjs` crea o reinicia la cuenta demo con 8 clientes, 12 productos y 11
+  facturas. Las facturas pasan por las mismas RPC que la app, así que la numeración, los totales
+  y el stock son reales. La `service_role` solo vive en el entorno: se sacó con la CLI de
+  Supabase directamente a `.env.local`, sin que apareciera en pantalla.
+- Despliegue en Vercel (proyecto `gestia`), con solo las dos variables públicas. `.vercelignore`
+  excluye `.env*`, porque `vercel link` también escribe en `.env.local` (añade el token OIDC).
+- Incidencia: la caché `.next/dev/types` de otra rama rompía el typecheck. Se borra al cambiar
+  de rama.
+- Prueba en Chrome con la sesión de Darío (el Orquestador no escribe contraseñas en
+  producción). Chrome no baja de 500 px de ancho, así que 375 px queda para DevTools.
+- **Testing, ronda 1: APROBADA.** Sin secretos en 25 commits ni en el bundle. 3 menores
+  corregidos por el Orquestador: F3, guarda `app_metadata.demo` para que un `DEMO_EMAIL`
+  equivocado no borre una cuenta real; F4, texto del CSV en el README; F2, esta entrada.
+  F1 (registro público activo en Supabase Auth) se desactiva en el panel.
