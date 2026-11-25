@@ -340,7 +340,7 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
 - **Verificación:** `npm run verify` en verde.
 
 ### Tarea 9 — Datos demo, despliegue y entrega
-- **Estado:** pendiente
+- **Estado:** hecha
 - **Develop:** Orquestador · **Crítica:** sí (secretos)
 - **Archivos:** `scripts/seed-demo.mjs` (lee `SUPABASE_SERVICE_ROLE_KEY` del entorno, que
   **nunca** se versiona), `README.md`, `docs/ARCHITECTURE.md` y `docs/BITACORA.md`.
@@ -355,3 +355,4 @@ Cada una empieza comprobando que `auth.uid()` no es null y que la factura perten
 - 2026-11-23 · T1 · Codex · 2 rondas y revisión adversarial · 5 fallos corregidos en `0002_hardening.sql` (aplicadas 0001 y 0002).
 - 2026-11-23 · T2 · Codex · 2 rondas · 262 tests; 6 menores corregidos (CIF N/R, NIF K/L/M, fechas 1900–2999, `-0`, CSV anti-fórmulas `'`).
 - 2026-11-25 · T7 · Codex · 2 rondas y revisión adversarial · adversarial: 2 medios → D13 (versión de borrador, `STALE_DRAFT`) y D14 (copia del destinatario al emitir), migración `0004` aplicada; 2 menores de la ronda 2 corregidos por el Orquestador.
+- 2026-11-25 · T9 · Orquestador · 1 ronda · seed demo, despliegue en Vercel (https://gestia-black.vercel.app), README; sin secretos en el historial; 3 menores corregidos (guarda `app_metadata.demo` en el seed, texto del CSV, entrada de bitácora); F1 (registro público activo en Supabase Auth) pendiente de desactivar en el panel.
